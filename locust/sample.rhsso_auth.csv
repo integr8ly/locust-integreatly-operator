@@ -1,0 +1,1 @@
+"localhost:8000","localhost:8000","/auth/realms/protocol/openid-connect/token","grant_type=password&client_id=676d9abf&client_secret=abc123&username=testUser&password=testUser"

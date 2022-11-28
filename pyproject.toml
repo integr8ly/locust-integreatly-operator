@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "locust-integreatly-operator"
+version = "0.1.0"
+description = "Load test configuration for the integreatly-operator"
+authors = ["Jim Fitzpatrick <jfitzpat@redhat.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+locust = "^2.13.0"
+
+[tool.poetry.dev-dependencies]
+fastapi = "^0.88.0"
+uvicorn = "^0.20.0"
+python-multipart = "^0.0.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
