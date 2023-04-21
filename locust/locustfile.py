@@ -3,7 +3,7 @@ import string
 import random
 from dataclasses import dataclass
 
-from locust import HttpUser, task, run_single_user, constant_throughput
+from locust import HttpUser, task, run_single_user, constant_throughput, constant_pacing
 
 
 @dataclass
@@ -94,7 +94,7 @@ auth_data = parse_csv()
 
 class RhoamUser(HttpUser):
     host = auth_data.host
-    wait_time = constant_throughput(20)
+    wait_time = constant_pacing(9.25)
     request_headers = ""
 
     payload5M = generate_payload(5 * 1024 * 1024)
@@ -105,6 +105,7 @@ class RhoamUser(HttpUser):
     payload5K = generate_payload(5 * 1024)
 
     def on_start(self):
+        print(auth_data)
         self._create_token()
 
     @task(1)
@@ -114,40 +115,40 @@ class RhoamUser(HttpUser):
     @task(40)
     def get_data(self):
         random_id = random.randint(1, 99999)
-        self.client.get(f"/0/nothing/get/{random_id}", headers=self.request_headers, name="Get Data")
+        self.client.get(f"/nothing/{random_id}", headers=self.request_headers, name="Get Data")
 
     @task(11)
     def post_data_5kb(self):
         random_id = random.randint(1, 99999)
-        self.client.post(f"/0/nothing/{random_id}",
+        self.client.post(f"/nothing/{random_id}",
                          json={"data": f"{self.post_data_5kb}"},
                          headers=self.request_headers, name="Post Data 5kb")
 
     @task(11)
     def post_data_20kb(self):
         random_id = random.randint(1, 99999)
-        self.client.post(f"/0/nothing/{random_id}",
+        self.client.post(f"/nothing/{random_id}",
                          json={"data": f"{self.post_data_20kb}"},
                          headers=self.request_headers, name="Post Data 20kb")
 
     @task(13)
     def post_data_100kb(self):
         random_id = random.randint(1, 99999)
-        self.client.post(f"/0/nothing/{random_id}",
+        self.client.post(f"/nothing/{random_id}",
                          json={"data": f"{self.post_data_100kb}"},
                          headers=self.request_headers, name="Post Data 100kb")
 
     @task(4)
     def post_data_500kb(self):
         random_id = random.randint(1, 99999)
-        self.client.post(f"/0/nothing/{random_id}",
+        self.client.post(f"/nothing/{random_id}",
                          json={"data": f"{self.post_data_500kb}"},
                          headers=self.request_headers, name="Post Data 500kb")
 
     @task(2)
     def post_data_1mb(self):
         random_id = random.randint(1, 99999)
-        self.client.post(f"/0/nothing/{random_id}",
+        self.client.post(f"/nothing/{random_id}",
                          json={"data": f"{self.post_data_1mb}"},
                          headers=self.request_headers, name="Post Data 1mb")
 
