@@ -7,3 +7,6 @@ __pycache__/
 nohup.out
 /tmp
 locust/rhsso_auth.csv
+locust/config.toml
+locust/auth.json
+locust/auth.csv

@@ -16,12 +16,13 @@ class AuthData(BaseModel):
     password: str
 
 
-@app.get("/0/nothing/get/{name}")
+@app.get("/nothing/get/{name}")
+@app.get("/nothing/{name}")
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
 
-@app.post("/0/nothing/{name}")
+@app.post("/nothing/{name}")
 async def say_hello(name: str, payload: Payload):
     return {"message": f"Hello {name}", "payload": payload}
 

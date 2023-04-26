@@ -1,5 +1,5 @@
 cores=$(grep -c ^processor /proc/cpuinfo)
-ulimit -n 1000
+ulimit -n 10000
 
 echo "starting locust master"
 locust --master &

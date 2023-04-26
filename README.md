@@ -2,8 +2,30 @@
 
 This repo contains code to do load testing on the integreatly-operator.
 
- A `rhsso_auth.csv` file is required to be in the same location as the locustfile.
- This file is currently create by the hyperfoil load testing function.
+## Recommendation
+This repo currently will work with python 3.9 or better but the recommended version is python 3.11 or higher. 
+
+## Configuration Files
+There are three configuration formats that are accepted. 
+Examples of these files can be found in the [configuration_samples](./configuration_samples) folder.
+
+The toml configuration format is the recommended format but requires python 3.11 or higher to be parsed.
+New configuration options will be added to the toml format only.
+
+Json format has being included as alternative to the csv format.
+
+The csv format is a historical artifact from using the hyperfoil test suite. 
+This file can have two names `rhsso_auth.csv` or `auth.csv`.
+Support for csv will be removed once python 3.11 is the minium support version.
+
+| Format | Filename(s)              |
+|--------|--------------------------|
+| toml   | config.toml              |
+| json   | auth.json                |
+| csv    | rhsso_auth.csv, auth.csv |
+
+Which ever file format is used the configuration file needs to be placed in the same location as the `locustfile.py`. 
+
  
 ## Run load test with remote host
 Log into a remote instances and insure the following tooling is installed

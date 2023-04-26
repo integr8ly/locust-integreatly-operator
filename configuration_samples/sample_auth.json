@@ -1,0 +1,10 @@
+{
+  "host": "localhost:8000",
+  "sso": "localhost:8000",
+  "endpoint": "/auth/realms/protocol/openid-connect/token",
+  "grant_type": "password",
+  "client_id": "676d9abf",
+  "client_secret": "abc123",
+  "username": "testUser",
+  "password": "testUser"
+}
