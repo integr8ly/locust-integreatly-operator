@@ -127,7 +127,7 @@ def parse_json(json_auth: Path):
     with open(json_auth) as f:
         data = f.read()
         data = json.loads(data)
-        result.host = data['host']
+        result.host = get_host(data['host'])
         result.token_url = get_token_url(data['sso'], data['endpoint'])
         auth = AuthData
         auth.grant_type = data['grant_type']

@@ -30,8 +30,8 @@ Which ever file format is used the configuration file needs to be placed in the 
 ## Run load test with remote host
 Log into a remote instances and insure the following tooling is installed
 ```shell
-sudo dnf install python39 -y
-pip3 install locust
+sudo dnf install python3.11 -y
+pip3.11 install locust
 mkdir locust
 ```
 
@@ -53,6 +53,13 @@ Here you can start the load testing.
 After the test have run and test results downloaded, locust can be stopped using `~/locust/kill.sh`
 
 ## Develop load test locally
+
+Set local environment to use python 3.11.
+Requires 3.11 to be installed but 3.11 does not need to be the system default version.
+```shell
+poetry env use 3.11
+```
+
 Set up the local environment using poetry.
 ```shell
 poetry install
@@ -63,9 +70,9 @@ If you are wishing not to use the mock server you can set up the environment usi
 poetry install --no-dev
 ```
 
-As the `rhsso_auth.csv` file is required there is a sample file that will work with the mock server.
+As the `config.toml` file is required there is a sample file that will work with the mock server.
 ```shell
-cp locust/sample.rhsso_auth.csv locust/rhsso_auth.csv
+cp configuration_samples/sample_config.toml locust/config.toml
 ```
 
 Active the mock server if needed.
