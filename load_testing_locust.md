@@ -7,7 +7,7 @@ Usually RHOAM is installed via addon when performance testing is taking place, i
 <img src="images/addon-managed-api-service-parameters.png" width="40%" height="40%">
 
 
-The 200 value in the screenshot above specifies the 20 Million Requests per day quota. This is set in the addon.yaml file in the managed-tenants repo. The following table shows each quota and its corresponding value.
+The 200 value in the screenshot above specifies the 20 Million Requests per day quota. These defaults are set in the addon.yaml file in the managed-tenants repo. The following table shows each quota and its corresponding value as seen in this repo.
 
 
 <table>
@@ -68,7 +68,7 @@ The 200 value in the screenshot above specifies the 20 Million Requests per day 
 We need a customer rest app to set up apicast for load testing. To be really customer-like do this using customer-admin user (or other user from dedicated-admins group, not kubeadmin)
 
 
-```
+```bash
 oc new-project httpbin
 oc new-app quay.io/trepel/httpbin
 oc get svc
@@ -84,7 +84,7 @@ The performance test needs the service **CLUSTER-IP** and **PORT** to use the se
 Recommend scaling this as if the customer like app can’t handle the load you will see errors not related to the product(RHOAM)
 
 
-```
+```bash
 oc scale deployment/httpbin --namespace httpbin --replicas=8 
 ```
 
@@ -92,7 +92,7 @@ oc scale deployment/httpbin --namespace httpbin --replicas=8
 Even though you don’t need the route exposing it is handy for testing
 
 
-```
+```bash
 oc expose svc httpbin -n httpbin
 ```
 
@@ -204,7 +204,7 @@ In the products section navigate to Integration - Backends - Add backend.
     6. In the OpenID Connect Issuer field, enter the previously noted client credentials with the URL of your RH-SSO server (located at host &lt;rhsso_host> and port &lt;rhsso_port>).
     7. https://&lt;client_id>:&lt;client_secret>@&lt;rhsso_host>:&lt;rhsso_port>/auth/realms/&lt;realm_name>
 
-Example: https://100k-gcp:15randomlettersandnumbers@keycloak-redhat-rhoam-user-sso.apps.fwaters-ccs2.xqpg.s2.devshift.org:443/auth/realms/100k-gcp
+Example: https://100k-gcp:randomlettersandnumbers@keycloak-redhat-rhoam-user-sso.apps.fwaters-ccs2.abcd.s2.devshift.org:443/auth/realms/100k-gcp
 
 
 <img src="images/openID-connect.png" width="40%" height="40%">
@@ -253,7 +253,7 @@ Confirming your setup correctly use the following script to test whether you get
 <br>
 
 
-```
+```bash
 #!/bin/bash
 # user-sso route
 KCHOST=https://keycloak-redhat-rhoam-user-sso.apps.fwaters-ccs2.xqpg.s2.devshift.org:443
@@ -295,7 +295,7 @@ Locust is a load testing tool that can be run locally or on a container on anoth
 * Clone it locally
 * Install locust
 
-```
+```bash
 pip3 install locust 
 ```
 
@@ -303,21 +303,39 @@ pip3 install locust
 
 constant_pacing is used to get to the correct number of requests per second(rps) for the load testing on locust. It also takes into account the number of users. It is the inverse of constant_throughput. In order to increase the rps you need to decrease the constant pacing value. When changing this be sure to only update in small increments. More info on this function can be found [here](https://docs.locust.io/en/stable/api.html#locust.wait_time.constant_pacing).
 
+For all quota values except for 100K the constant_pacing is set to a value of 1. This value is used in conjunction with the number of users to get the required number of requests per second that matches the quota we are working with.
 
-* 1.157 rps pacing value 9.25 for 100k at 11 users
-* 11.57 rps pacing value 1.25 for 1m at 14 users
-* 57.87 rps pacing value 0.207 for 5m at 12 users
-* 110.00 rps pacing value 0.09 for 10m at 10 user
-* 231.48 rps pacing value * for 20m at 12 user
-* ~550 rps pacing value 0.01 for 50m at 32 users
-* 1157.41 rps pacing value * for 100m at 12 user
+For example:
 
+**20 million quota**
 
-<img src="images/calculate-rps.png" width="30%" height="30%">
+Requests per second required: 20,000,000 ÷ 60 ÷ 60 ÷ 24 = 231.481481 (232)
 
+With constant_pacing set to 1, there will be 1 request every second, so in order to get to 20 million requests in 24 hours (1 day) we need 232 users. This user number is set in the Locust UI when starting the load test.
 
+<br>
 
-Alternatively you can set the constant_pacing value to 1 and adjust the number of users accordingly. Example - For the 20 Million quota, that equates to 232 users and 232 requests per second.
+100,000 ÷ 60 ÷ 60 ÷ 24 = 1.15740741 (1.2)
+
+1 million ÷ 60 ÷ 60 ÷ 24 = 11.5740741 (12)
+
+5 million ÷ 60 ÷ 60 ÷ 24 = 57.8703704 (58)
+
+10 million ÷ 60 ÷ 60 ÷ 24 = 115.740741 (116)
+
+20 million ÷ 60 ÷ 60 ÷ 24 = 231.481481 (232)
+
+50 million ÷ 60 ÷ 60 ÷ 24 = 578.703704 (579)
+
+100 million ÷ 60 ÷ 60 ÷ 24 = 1157.40741 (1157)
+
+<br>
+
+**NOTE:** For the 100k quota we need to alter the constant_pacing value. We can set the constant_pacing variable to 9.25 with 11 users which equates to 1.157 requests per second. This can be updated in locustfile.py
+
+```
+wait_time = constant_pacing(9.25) 
+```
 
 <br>
 
@@ -327,12 +345,33 @@ Locust requires an auth file. This file was initially generated by the 3scale-qe
 TOML is the recommended file format, but JSON or CSV can also be used. See examples below:
 
 ## TOML
+```
+[3scale]
+url = "localhost:8000" # 3scale tenant URL
 
-<img src="images/toml-example.png" width="30%" height="30%">
-
+[auth]
+url = "localhost:8000" # sso URL
+endpoint = "/auth/realms/protocol/openid-connect/token" # path to token
+grant_type = "password"
+client_id = "676d9abf"
+client_secret = "abc123"
+username = "testUser"
+password = "testUser"
+```
 
 ## JSON
-<img src="images/json-example.png" width="30%" height="30%">
+```json
+{
+  "host": "localhost:8000",
+  "sso": "localhost:8000",
+  "endpoint": "/auth/realms/protocol/openid-connect/token",
+  "grant_type": "password",
+  "client_id": "676d9abf",
+  "client_secret": "abc123",
+  "username": "testUser",
+  "password": "testUser"
+}
+```
 
 
 ## CSV
@@ -345,7 +384,7 @@ TOML is the recommended file format, but JSON or CSV can also be used. See examp
 In order to start the performance test run the following commands from the locust directory:
 
 
-```
+```bash
 pipenv shell
 locust
 ./start.sh
@@ -357,7 +396,7 @@ In your browser navigate to localhost:8089
 To stop the test run
 
 
-```
+```bash
 ./kill.sh
 ```
 
@@ -373,7 +412,7 @@ Once this is created, ssh into the instance:
 
 1. Install [gcloud CLI](https://cloud.google.com/sdk/docs/install) and in a terminal authenticate with gcloud
 
-```
+```bash
 gcloud auth login
 ```
 
@@ -383,13 +422,13 @@ gcloud auth login
 * On the GCP console navigate to VPC network -  Firewall - find the firewall rule relating to your GCE instance - edit this and add your IP address to the IP ranges.
 4. SSH onto the GCE instance with the following command:
 
-```
+```bash
 gcloud compute ssh <gce instance name> --zone <gcp zone instance has been created in> --project rhoam-317914 --ssh-key-file <path to ssh key file>
 ```
 
 Example command:
 
-```
+```bash
 gcloud compute ssh fwaters-performance-test-vm --zone europe-west2-c --project rhoam-317914 --ssh-key-file ~/.ssh/gcp_key
 
 ```
@@ -397,20 +436,20 @@ gcloud compute ssh fwaters-performance-test-vm --zone europe-west2-c --project r
 5. Set up Locust
    1. From the GCE instance, install python and locust
 
-```
+```bash
 sudo dnf install python -y
 pip3.9 install locust3.11
 mkdir locust
 ```
    2. From your local machine copy over the required files:
 
-```
+```bash
 gcloud compute scp --recurse locust/* gce-user@<vm-url>:locust --ssh-key-file <path to ssh key file>
 ```
 
 Example command:
 
-```
+```bash
 gcloud compute scp --recurse locust/* fionawaters@fwaters-performance-test-vm:locust --ssh-key-file ~/.ssh/gcp_key
 ```
 
@@ -418,7 +457,7 @@ gcloud compute scp --recurse locust/* fionawaters@fwaters-performance-test-vm:lo
 Start the performance testing by running the start script
 
 
-```
+```bash
 ~/locust/start.sh
 ```
 
@@ -437,7 +476,7 @@ Once this is created, ssh into the instance:
 1. Install [AWS CLI](https://aws.amazon.com/cli/)
 2. Ensure that the EC2 instance can take traffic from your IP address:
 
-```
+```bash
 aws ec2 authorize-security-group-ingress --group-id <group id> --protocol all --cidr <your-public-IP>/32 --region us-east-1
 ```
 
@@ -450,7 +489,7 @@ aws ec2 authorize-security-group-ingress --group-id <group id> --protocol all --
 4. Set up Locust
    1. Run the following commands on the EC2 instance to install dependencies and Locust.
 
-```
+```bash
 ssh-keygen -t rsa -N "" -f .ssh/id_rsa
 cat .ssh/id_rsa.pub >> .ssh/authorized_keys
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa localhost 'exit'
@@ -462,7 +501,7 @@ mkdir locust
 
    2. Copy the required files from your local machine
 
-```
+```bash
 scp -i /path/key-pair-name.pem locust/* ec2-user@\[instance-IPv6-address\]:locust
 ```
 
@@ -470,7 +509,7 @@ scp -i /path/key-pair-name.pem locust/* ec2-user@\[instance-IPv6-address\]:locus
 5. Add your public key to the authorized_keys of the ec2 instance
    1. First you will need to get your public key from your local machine.  Open another terminal and run the following command.
 
-```
+```bash
 cat ~/.ssh/id_rsa.pub
 ```
 
@@ -482,7 +521,7 @@ cat ~/.ssh/id_rsa.pub
 Start the performance testing by running the start script
 
 
-```
+```bash
 ~/locust/start.sh
 ```
 
@@ -502,7 +541,7 @@ To use this script you need to generate the start time and end time for a benchm
 **NOTE:**Use UTC time for start and end times if you manually edit the start and end files as metrics and prometheus use this.
 
 
-```
+```bash
 # usually run before test
 date -u +%Y-%m-%dT%TZ > perf-test-start-time.txt
 # usually run after test
