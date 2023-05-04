@@ -351,7 +351,7 @@ url = "localhost:8000" # 3scale tenant URL
 
 [auth]
 url = "localhost:8000" # sso URL
-endpoint = "/auth/realms/protocol/openid-connect/token" # path to token
+endpoint = "/auth/realms/<realm>protocol/openid-connect/token" # path to token
 grant_type = "password"
 client_id = "676d9abf"
 client_secret = "abc123"
@@ -364,7 +364,7 @@ password = "testUser"
 {
   "host": "localhost:8000",
   "sso": "localhost:8000",
-  "endpoint": "/auth/realms/protocol/openid-connect/token",
+  "endpoint": "/auth/realms/<realm>protocol/openid-connect/token",
   "grant_type": "password",
   "client_id": "676d9abf",
   "client_secret": "abc123",
