@@ -120,11 +120,11 @@ In OpenShift,  navigate to the redhat-rhoam-user-sso project/namespace, and sele
 4. To configure the client permissions, set the following values:
     1. _Access Type_ to `confidential`.
     2. _Standard Flow Enabled_ to `ON`.
-    3. _Direct Access Grants Enabled_ to `ON`.
-    4. Implicit Flow Enabled `ON.`
+    3. Implicit Flow Enabled `ON.`
+    4. _Direct Access Grants Enabled_ to `ON`.
     5. _Service Accounts Enabled_ to `ON`.
     6. Authorization Enabled `ON`.
-    7. Valid Redirect URIs *
+    7. Valid Redirect URIs set to *
 
 
 <img src="images/client-permissions.png" width="40%" height="40%">
@@ -188,21 +188,21 @@ To configure 3scale using default 3scale tenant which is created by RHOAM, take 
 <img src="images/create-backend.png" width="40%" height="40%">
 
 
-2. Create the product and attach the backend to it,
-
-In the products section navigate to Integration - Backends - Add backend.
-
+2. Create the product and attach the backend to it:
+   1. Navigate to products from the drop down and hit Create Product
+   2. Fill out the fields to whatever you like (100k-gcp for example)
+   3. Navigate to Integration - Backends - Add backend.
 
 <img src="images/add-backend-to-product.png" width="30%" height="30%">
 
 
 3. Enable OpenID Connect.
 
-    3. Navigate to the products dashboard and select your product
-    4. Choose Integration from the menu on the left, and then settings.
-    5. Under the Authentication deployment options, select OpenID Connect.
-    6. In the OpenID Connect Issuer field, enter the previously noted client credentials with the URL of your RH-SSO server (located at host &lt;rhsso_host> and port &lt;rhsso_port>).
-    7. https://&lt;client_id>:&lt;client_secret>@&lt;rhsso_host>:&lt;rhsso_port>/auth/realms/&lt;realm_name>
+    1. Navigate to the products dashboard and select your product
+    2. Choose Integration from the menu on the left, and then settings.
+    3. Under the Authentication deployment options, select OpenID Connect.
+    4. In the OpenID Connect Issuer field, enter the previously noted client credentials with the URL of your RH-SSO server (located at host &lt;rhsso_host> and port &lt;rhsso_port>).
+    5. https://&lt;client_id>:&lt;client_secret>@&lt;rhsso_host>:&lt;rhsso_port>/auth/realms/&lt;realm_name>
 
 Example: https://100k-gcp:randomlettersandnumbers@keycloak-redhat-rhoam-user-sso.apps.fwaters-ccs2.abcd.s2.devshift.org:443/auth/realms/100k-gcp
 
@@ -210,42 +210,41 @@ Example: https://100k-gcp:randomlettersandnumbers@keycloak-redhat-rhoam-user-sso
 <img src="images/openID-connect.png" width="40%" height="40%">
 
 
-8. Check all the OIDC Authorization Flow options
+   6. Check all the OIDC Authorization Flow options
 
 <img src="images/OIDC-auth-flow.png" width="40%" height="40%">
 
 
-9. Set the Credentials location As http headers and hit the update product button at the bottom of the screen
+   7. Set the Credentials location As http headers and hit the update product button at the bottom of the screen
 
 
 <img src="images/asHTTP-headers.png" width="40%" height="40%">
 
 
-10.  Add a POST mapping rule in Products Integration Mapping Rules Click on the create Mapping rule and fill out the form as follows
+   8.  Add a POST mapping rule in Products Integration Mapping Rules Click on the create Mapping rule and fill out the form as follows
 
 
 <img src="images/POST-mapping-rule.png" width="40%" height="40%">
 
-
-11. Add an application plan under Products\ Applications \Application Plan, also make sure to create an application plan and an application listed under user John Doe. Include a name and system name and click create application plan.
+   9. Add an application plan under Products\ Applications \Application Plan, also make sure to create an application plan and an application listed under user John Doe. Include a name and system name and click create application plan.
 
 
 <img src="images/application-plan.png" width="40%" height="40%">
 
 
-12. Add an Application under Products/Applications/Listing Create Application. Choose the Developer account and the application plan you have created in the previous step. Add a name and description. Click create application.
+   10. Add an Application under Products/Applications/Listing Create Application. Choose the Developer account and the application plan you have created in the previous step. Add a name and description. Click create application.
 
 <img src="images/application.png" width="40%" height="40%">
 
 
-13. Once the application is created go into it and generate the client secret
+   11. Once the application is created go into it and generate the client secret
 
 <img src="images/generate-client-secret.png" width="40%" height="40%">
 
 
 Take note of the Client ID and Client Secret.
 
-14. Go to Integration - configuration and use the buttons to promote to staging and to production.
+   12. Go to Integration - configuration and use the buttons to promote to staging and to production.
 
 <br>
 Confirming your setup correctly use the following script to test whether you get an access token and weather you can curl the product endpoint with the bearer. 
