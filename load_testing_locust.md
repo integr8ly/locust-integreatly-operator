@@ -140,13 +140,13 @@ In OpenShift,  navigate to the redhat-rhoam-user-sso project/namespace, and sele
 <img src="images/service-account-roles.png" width="40%" height="40%">
 
 6. Note the client credentials:
-    1. Make a note of the client ID (`&lt;client_id>`).
+    1. Make a note of the client ID (`<client_id>`).
 
 
 <img src="images/client-id.png" width="40%" height="40%">
 
       
-   2. Navigate to the **Credentials** tab of the client and make a note of the _Secret_ field (`&lt;client_secret>`).
+   2. Navigate to the **Credentials** tab of the client and make a note of the _Secret_ field (`<client_secret>`).
 
 
 <img src="images/credentials.png" width="40%" height="40%">
@@ -302,37 +302,21 @@ pip3 install locust
 
 constant_pacing is used to get to the correct number of requests per second(rps) for the load testing on locust. It also takes into account the number of users. It is the inverse of constant_throughput. In order to increase the rps you need to decrease the constant pacing value. When changing this be sure to only update in small increments. More info on this function can be found [here](https://docs.locust.io/en/stable/api.html#locust.wait_time.constant_pacing).
 
-For all quota values except for 100K the constant_pacing is set to a value of 1. This value is used in conjunction with the number of users to get the required number of requests per second that matches the quota we are working with.
+| SKU | calculation | constant_pacing | users | RPS | 
+| ---- | ----------- | --------------- | ----- | --- |
+| 1 k | 100,000 ÷ 60 ÷ 60 ÷ 24 = 1.15740741 | 9.25 |11 | 1.157 |
+| 1 million | 1 million ÷ 60 ÷ 60 ÷ 24 = 11.5740741 | 1.25 | 14 | 11.57 |
+| 5 million | 5 million ÷ 60 ÷ 60 ÷ 24 = 57.8703704 | 0.207| 12 | 57.87 |
+| 10 million | 10 million ÷ 60 ÷ 60 ÷ 24 = 115.740741 | 0.09 | 10 | 110 |
+| 20 million | 20 million ÷ 60 ÷ 60 ÷ 24 = 231.481481 | 1 | 232 | 232 |
+| 50 million | 50 million ÷ 60 ÷ 60 ÷ 24 = 578.703704 | 0.01 | 32 | 550 |
+| 100 million | 100 million ÷ 60 ÷ 60 ÷ 24 = 1157.40741 | 0.05 | 59 | 1150 |
 
-For example:
 
-**20 million quota**
+**NOTE:** we need to alter the constant_pacing value. We can set the constant_pacing variable to the value in the table above. This can be updated in locustfile.py
 
-Requests per second required: 20,000,000 ÷ 60 ÷ 60 ÷ 24 = 231.481481 (232)
-
-With constant_pacing set to 1, there will be 1 request every second, so in order to get to 20 million requests in 24 hours (1 day) we need 232 users. This user number is set in the Locust UI when starting the load test.
-
-<br>
-
-100,000 ÷ 60 ÷ 60 ÷ 24 = 1.15740741 (1.2)
-
-1 million ÷ 60 ÷ 60 ÷ 24 = 11.5740741 (12)
-
-5 million ÷ 60 ÷ 60 ÷ 24 = 57.8703704 (58)
-
-10 million ÷ 60 ÷ 60 ÷ 24 = 115.740741 (116)
-
-20 million ÷ 60 ÷ 60 ÷ 24 = 231.481481 (232)
-
-50 million ÷ 60 ÷ 60 ÷ 24 = 578.703704 (579)
-
-100 million ÷ 60 ÷ 60 ÷ 24 = 1157.40741 (1157)
-
-<br>
-
-**NOTE:** For the 100k quota we need to alter the constant_pacing value. We can set the constant_pacing variable to 9.25 with 11 users which equates to 1.157 requests per second. This can be updated in locustfile.py
-
-```
+e.g.
+```python
 wait_time = constant_pacing(9.25) 
 ```
 
@@ -350,7 +334,7 @@ url = "localhost:8000" # 3scale tenant URL
 
 [auth]
 url = "localhost:8000" # sso URL
-endpoint = "/auth/realms/<realm>protocol/openid-connect/token" # path to token
+endpoint = "/auth/realms/<realm>/protocol/openid-connect/token" # path to token
 grant_type = "password"
 client_id = "676d9abf"
 client_secret = "abc123"
@@ -363,7 +347,7 @@ password = "testUser"
 {
   "host": "localhost:8000",
   "sso": "localhost:8000",
-  "endpoint": "/auth/realms/<realm>protocol/openid-connect/token",
+  "endpoint": "/auth/realms/<realm>/protocol/openid-connect/token",
   "grant_type": "password",
   "client_id": "676d9abf",
   "client_secret": "abc123",
@@ -619,7 +603,21 @@ The downloaded report can also be added to the relevant jira ticket. After you c
 
 ## Alerts
 
-To view alerts, navigate to the redhat-rhoam-obserability namespace, choose Networking and then Routes from the menu on the left. Click on the Location URL for the Prometheus route. Log in with kubeadmin credentials. Then click on the Alerts tab to view their current state.
+We have a script that can be run while a load test is running to determine if any alerts are triggered during the load test. This is useful in overnight tests as you can't always be available to look at the dashboards. Its in the [script directory of the integreatly-operator](https://github.com/integr8ly/integreatly-operator/blob/master/scripts/alerts-during-perf-testing.sh)
+
+```bash
+# USAGE
+# ./alerts-during-perf-testing.sh <optional product-name>
+# ^C to break
+# Generates two files one for firing and one for pending alerts
+#
+# PREREQUISITES
+# - jq
+# - oc (logged in at the cmd line in order to get the bearer token)
+```
+
+
+To view alerts manually, navigate to the redhat-rhoam-obserability namespace, choose Networking and then Routes from the menu on the left. Click on the Location URL for the Prometheus route. Log in with kubeadmin credentials. Then click on the Alerts tab to view their current state.
 
 To check the history
 
@@ -628,3 +626,5 @@ To check the history
 * Select the graph tab and set the time frame
 
 <img src="images/prometheus-alert-history.png" width="40%" height="40%">
+
+
