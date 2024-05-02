@@ -36,23 +36,11 @@ def parse_csv(csv_file: Path):
     logging.info(f"loading csv file {csv_file}")
 
     with open(csv_file) as f:
-        data = f.read()
-        data = data.split(",")
+        lines = f.readlines()
+        random_line = random.choice(lines)  # Select a random line from the CSV file
+        data = random_line.strip().split(",")  
         result.host = get_host(data[0])
-        result.param = data[1]
-
-    return result
-
-
-def parse_toml(toml_config: Path):
-    import tomllib
-    logging.info("loading toml configuration")
-    result = HostData
-    with open(toml_config) as f:
-        data = f.read()
-        data = tomllib.loads(data)
-        result.host = get_host(data['3scale']['url'])
-        result.param = data['3scale']['param']
+        result.param = data[1].strip('"')
 
     return result
 
@@ -79,23 +67,7 @@ def parse_json(json_auth: Path):
 
 def load_data():
 
-    try:
-        toml_config = Path("config.toml")
-        if toml_config.is_file():
-            return parse_toml(toml_config)
-    except ModuleNotFoundError:
-        logging.warning("module tomllib not found falling back to older configuration formats")
-    python_version_check()
-
-    json_auth = Path("auth.json")
-    if json_auth.is_file():
-        return parse_json(json_auth)
-
-    auth_csv = Path("auth.csv")
-    if auth_csv.is_file():
-        return parse_csv(auth_csv)
-
-    auth_csv = Path("rhsso_auth.csv")
+    auth_csv = Path("3scale.csv")
     if auth_csv.is_file():
         return parse_csv(auth_csv)
 
@@ -113,55 +85,13 @@ auth_data = load_data()
 class RhoamUser(HttpUser):
     host = auth_data.host
     param = auth_data.param
-    wait_time = constant_pacing(1)
+    wait_time = constant_pacing(0.207)
     request_headers = ""
-
-    payload5M = generate_payload(5 * 1024 * 1024)
-    payload1M = generate_payload(1024 * 1024)
-    payload500K = generate_payload(500 * 1024)
-    payload100K = generate_payload(100 * 1024)
-    payload20K = generate_payload(20 * 1024)
-    payload5K = generate_payload(5 * 1024)
 
     @task(40)
     def get_data(self):
-        random_id = random.randint(1, 99999)
-        self.client.get(f"/nothing/{random_id}/{self.param}", headers=self.request_headers, name="Get Data")
-
-    @task(11)
-    def post_data_5kb(self):
-        random_id = random.randint(1, 99999)
-        self.client.post(f"/nothing/{random_id}/{self.param}",
-                         json={"data": f"{self.post_data_5kb}"},
-                         headers=self.request_headers, name="Post Data 5kb")
-
-    @task(11)
-    def post_data_20kb(self):
-        random_id = random.randint(1, 99999)
-        self.client.post(f"/nothing/{random_id}/{self.param}",
-                         json={"data": f"{self.post_data_20kb}"},
-                         headers=self.request_headers, name="Post Data 20kb")
-
-    @task(13)
-    def post_data_100kb(self):
-        random_id = random.randint(1, 99999)
-        self.client.post(f"/nothing/{random_id}/{self.param}",
-                         json={"data": f"{self.post_data_100kb}"},
-                         headers=self.request_headers, name="Post Data 100kb")
-
-    @task(4)
-    def post_data_500kb(self):
-        random_id = random.randint(1, 99999)
-        self.client.post(f"/nothing/{random_id}/{self.param}",
-                         json={"data": f"{self.post_data_500kb}"},
-                         headers=self.request_headers, name="Post Data 500kb")
-
-    @task(2)
-    def post_data_1mb(self):
-        random_id = random.randint(1, 99999)
-        self.client.post(f"/nothing/{random_id}/{self.param}",
-                         json={"data": f"{self.post_data_1mb}"},
-                         headers=self.request_headers, name="Post Data 1mb")
+        logging.warning("route: https://%s%s",self.host,self.param)
+        self.client.get(f"https://{self.host}{self.param}", headers=self.request_headers, name="Get Data")
 
 
 if __name__ == "__main__":
